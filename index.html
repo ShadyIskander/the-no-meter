@@ -168,7 +168,7 @@ function drawChart(scores, labels) {
   g += `<polyline points="${pts}" fill="none" stroke="#FF3D8B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
   scores.forEach((s, i) => {
     g += `<circle cx="${x(i)}" cy="${y(s)}" r="6" fill="#FFD23F" stroke="#1E1646" stroke-width="3"/>`;
-    if (i % every === 0) g += `<text class="axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(labels[i]).slice(0, 10)}</text>`;
+    if (i % every === 0) g += `<text class="axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(labels[i].replace(/[\s,\/-]*\d{4}$/, '')).slice(0, 10)}</text>`;
   });
   $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart of scores over time" style="color:var(--ink)">${g}</svg>`;
 }
