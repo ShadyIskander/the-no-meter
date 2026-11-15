@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tia’s No-Meter</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚫</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #ECE8FB; --card: #FFFFFF; --ink: #1E1646;
+    --pink: #FF3D8B; --sun: #FFD23F; --mint: #2EC4A6; --soft: #6B6592;
+    --shadow: 4px 4px 0 var(--ink);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --paper: #15102F; --card: #221A4D; --ink: #F3EFFF; --soft: #A59FCB; --shadow: 4px 4px 0 #000; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 400 16px/1.5 "DM Sans", system-ui, sans-serif; }
+  main { max-width: 880px; margin: 0 auto; padding: 28px 18px 64px; }
+  h1, h2, .big { font-family: "Bricolage Grotesque", "DM Sans", sans-serif; margin: 0; }
+
+  .hero { display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center; padding: 8px 0 28px; }
+  .hero h1 { font-size: clamp(64px, 17vw, 150px); font-weight: 800; line-height: .85; letter-spacing: -.04em; }
+  .hero h1 span { color: var(--pink); }
+  .hero p { margin: 14px 0 0; color: var(--soft); max-width: 34ch; }
+  .sticker { width: 150px; height: 150px; border-radius: 50%; background: var(--sun); color: #1E1646; border: 3px solid var(--ink);
+    box-shadow: var(--shadow); display: grid; place-content: center; text-align: center; transform: rotate(8deg); animation: pop .6s cubic-bezier(.2,1.4,.4,1) both; }
+  .sticker b { font: 800 54px/1 "Bricolage Grotesque", sans-serif; }
+  .sticker small { font-weight: 700; font-size: 12px; }
+  @keyframes pop { from { transform: rotate(-30deg) scale(.2); opacity: 0; } }
+
+  .level { display: inline-block; background: var(--ink); color: var(--paper); border-radius: 99px; padding: 4px 14px; font-weight: 700; font-size: 14px; margin-bottom: 14px; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+  .box { background: var(--card); border: 3px solid var(--ink); border-radius: 14px; box-shadow: var(--shadow); padding: 16px 18px; }
+  .stat b { display: block; font: 800 40px/1.1 "Bricolage Grotesque", sans-serif; }
+  .stat span { color: var(--soft); font-size: 14px; }
+
+  h2 { font-size: 24px; margin-bottom: 12px; }
+  .chart { margin-bottom: 22px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .chart .axis { fill: var(--soft); font-size: 12px; }
+
+  .log { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .entry { display: grid; grid-template-columns: 64px 1fr; gap: 14px; background: var(--card); border: 3px solid var(--ink); border-radius: 14px; padding: 14px; }
+  .chip { width: 64px; height: 64px; border-radius: 12px; border: 3px solid var(--ink); display: grid; place-content: center; text-align: center; color: #1E1646; }
+  .chip b { font: 800 28px/1 "Bricolage Grotesque", sans-serif; }
+  .chip small { font-size: 11px; font-weight: 700; }
+  .s-high { background: var(--mint); } .s-mid { background: var(--sun); } .s-low { background: var(--pink); }
+  .ask { font-weight: 700; }
+  .reply { color: var(--soft); font-style: italic; margin: 2px 0; }
+  .note { font-size: 14px; }
+  .date { font-size: 13px; color: var(--soft); }
+  .banner { background: var(--sun); color: #1E1646; border: 3px solid var(--ink); border-radius: 10px; padding: 10px 14px; margin-bottom: 18px; font-size: 14px; }
+  .empty { text-align: center; padding: 40px 10px; color: var(--soft); }
+  footer { margin-top: 34px; color: var(--soft); font-size: 13px; text-align: center; }
+
+  @media (max-width: 560px) {
+    .hero { grid-template-columns: 1fr; } .sticker { justify-self: start; width: 120px; height: 120px; }
+    .sticker b { font-size: 42px; } .stat b { font-size: 30px; } .box { padding: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .sticker { animation: none; } }
+</style>
+</head>
+<body>
+<main>
+  <div id="banner"></div>
+  <section class="hero">
+    <div>
+      <div class="level" id="level">Loading…</div>
+      <h1>No<span>.</span></h1>
+      <p id="tagline">Tia’s progress on saying no without the guilt.</p>
+    </div>
+    <div class="sticker" aria-label="Average score"><div><b id="avg">–</b><small>average / 10</small></div></div>
+  </section>
+
+  <section class="stats">
+    <div class="box stat"><b id="streak">–</b><span>strong no’s in a row</span></div>
+    <div class="box stat"><b id="best">–</b><span>best score</span></div>
+    <div class="box stat"><b id="count">–</b><span>asks tested</span></div>
+  </section>
+
+  <section class="box chart">
+    <h2>Score over time</h2>
+    <div id="chart"></div>
+  </section>
+
+  <section>
+    <h2>The log</h2>
+    <ul class="log" id="log"></ul>
+  </section>
+
+  <footer>Score 7 or higher is a strong no. Keep going, Tia.</footer>
+</main>
+
+<script>
+const NAME = 'Tia';
+const STRONG = 7;
+
+const DEMO = [
+  { date: 'Mon', ask: 'Can you cover my shift this weekend?', reply: 'Sure, no problem…', score: 2, note: 'Said yes before the question ended.' },
+  { date: 'Tue', ask: 'Come to my cousin’s party tonight?', reply: 'I’ll try to make it.', score: 4, note: 'A maybe is a soft yes. Closer.' },
+  { date: 'Wed', ask: 'Can you proofread my report now?', reply: 'Can’t today, sorry!', score: 7, note: 'Clear no, with a small apology.' },
+  { date: 'Thu', ask: 'Lend me 500 till Friday?', reply: 'No, I’m not lending money right now.', score: 9, note: 'No excuse needed. Perfect.' },
+  { date: 'Fri', ask: 'Drive me to the airport at 5am?', reply: 'I can’t, but good luck with the trip!', score: 8, note: 'Firm and kind.' },
+];
+
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const $ = id => document.getElementById(id);
+const tier = s => s >= STRONG ? 's-high' : s >= 4 ? 's-mid' : 's-low';
+const levelOf = a => a >= 8 ? 'Certified No-Sayer' : a >= 6 ? 'Getting firm' : a >= 4 ? 'Wobbling, but trying' : 'Yes machine';
+
+function render(entries, isDemo) {
+  if (isDemo) $('banner').innerHTML = '<div class="banner">Showing demo data. Connect your Google Sheet to see real scores (see README).</div>';
+  if (!entries.length) {
+    $('level').textContent = 'No scores yet';
+    $('log').innerHTML = '<li class="empty">No entries yet. Add the first row to the sheet.</li>';
+    return;
+  }
+  const scores = entries.map(e => e.score);
+  const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
+  let streak = 0;
+  for (let i = scores.length - 1; i >= 0 && scores[i] >= STRONG; i--) streak++;
+
+  $('avg').textContent = avg.toFixed(1);
+  $('level').textContent = levelOf(avg);
+  $('streak').textContent = streak;
+  $('best').textContent = Math.max(...scores);
+  $('count').textContent = scores.length;
+
+  if (scores.length >= 6) {
+    const recent = scores.slice(-3).reduce((a, b) => a + b, 0) / 3;
+    const before = scores.slice(0, -3).reduce((a, b) => a + b, 0) / (scores.length - 3);
+    const d = recent - before;
+    $('tagline').textContent = d > 0.3 ? `Last 3 asks are ${d.toFixed(1)} points above ${NAME}’s earlier average. Trending up.`
+      : d < -0.3 ? `Last 3 asks dipped ${Math.abs(d).toFixed(1)} points. Time to practise.`
+      : `${NAME}’s scores are holding steady.`;
+  }
+
+  drawChart(scores, entries.map(e => e.date));
+
+  $('log').innerHTML = entries.slice().reverse().map(e => `
+    <li class="entry">
+      <div class="chip ${tier(e.score)}"><div><b>${e.score}</b><small>/10</small></div></div>
+      <div>
+        <div class="date">${esc(e.date)}</div>
+        <div class="ask">${esc(e.ask)}</div>
+        ${e.reply ? `<div class="reply">“${esc(e.reply)}”</div>` : ''}
+        ${e.note ? `<div class="note">${esc(e.note)}</div>` : ''}
+      </div>
+    </li>`).join('');
+}
+
+function drawChart(scores, labels) {
+  const W = 700, H = 220, p = { l: 30, r: 14, t: 14, b: 28 };
+  const n = scores.length;
+  const x = i => p.l + (n === 1 ? (W - p.l - p.r) / 2 : i * (W - p.l - p.r) / (n - 1));
+  const y = v => p.t + (1 - v / 10) * (H - p.t - p.b);
+  const pts = scores.map((s, i) => `${x(i)},${y(s)}`).join(' ');
+  const every = Math.ceil(n / 8);
+  let g = '';
+  [0, 5, 10].forEach(v => g += `<line x1="${p.l}" x2="${W - p.r}" y1="${y(v)}" y2="${y(v)}" stroke="currentColor" opacity=".12"/><text class="axis" x="4" y="${y(v) + 4}">${v}</text>`);
+  g += `<line x1="${p.l}" x2="${W - p.r}" y1="${y(STRONG)}" y2="${y(STRONG)}" stroke="#2EC4A6" stroke-width="2" stroke-dasharray="6 5"/>`;
+  g += `<text class="axis" x="${W - p.r}" y="${y(STRONG) - 6}" text-anchor="end">strong no</text>`;
+  g += `<polyline points="${pts}" fill="none" stroke="#FF3D8B" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/>`;
+  scores.forEach((s, i) => {
+    g += `<circle cx="${x(i)}" cy="${y(s)}" r="6" fill="#FFD23F" stroke="#1E1646" stroke-width="3"/>`;
+    if (i % every === 0) g += `<text class="axis" x="${x(i)}" y="${H - 8}" text-anchor="middle">${esc(labels[i]).slice(0, 10)}</text>`;
+  });
+  $('chart').innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart of scores over time" style="color:var(--ink)">${g}</svg>`;
+}
+
+fetch('/api/scores')
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => render(d.entries, false))
+  .catch(() => render(DEMO, true));
+</script>
+</body>
+</html>
